@@ -1128,24 +1128,28 @@ function openTask(id){
       <code>${esc(t.output)}</code>
     </div>`:''}
 
-    <!-- 实时动态 -->
-    ${!['Done','Cancelled'].includes(t.state) ? `
+    <!-- 实时动态 / 执行回顾 -->
     <div class="la-section" id="live-activity-section">
       <div class="la-header">
-        <span class="la-title"><span class="la-dot" id="la-dot"></span>实时动态</span>
+        <span class="la-title"><span class="la-dot" id="la-dot"></span>${['Done','Cancelled'].includes(t.state)?'执行回顾':'实时动态'}</span>
         <span class="la-agent" id="la-agent-label">加载中...</span>
       </div>
+      <div id="la-phase-bar"></div>
+      <div id="la-todos-bar"></div>
+      <div id="la-resource-bar"></div>
       <div class="la-log" id="la-log">
         <div class="la-empty">正在获取 Agent 活动数据...</div>
       </div>
-    </div>` : ''}
+    </div>
   `;
 
   document.getElementById('modal-bg').classList.add('open');
 
-  // 启动实时动态轮询
-  if(!['Done','Cancelled'].includes(t.state)){
-    startLiveActivity(t.id);
+  // 启动实时动态（Done 任务只拉一次，不轮询）
+  if(['Done','Cancelled'].includes(t.state)){
+    startLiveActivity(t.id, true);
+  } else {
+    startLiveActivity(t.id, false);
   }
 }
 
@@ -1165,11 +1169,13 @@ function stopLiveActivity(){
   _laTaskId=null;_laLastCount=0;
 }
 
-function startLiveActivity(taskId){
+function startLiveActivity(taskId, once){
   stopLiveActivity();
   _laTaskId=taskId;
   fetchLiveActivity();
-  _laTimer=setInterval(fetchLiveActivity, 4000);
+  if(!once){
+    _laTimer=setInterval(fetchLiveActivity, 4000);
+  }
 }
 
 async function fetchLiveActivity(){
@@ -1211,6 +1217,65 @@ function renderLiveActivity(data){
 
   const srcBanner = '';
 
+  // ── 阶段耗时时间线 ──
+  const phaseBar = document.getElementById('la-phase-bar');
+  if(phaseBar && data.phaseDurations && data.phaseDurations.length){
+    const maxDur = Math.max(...data.phaseDurations.map(p=>p.durationSec||1), 1);
+    const phaseColors = {'皇上':'#eab308','太子':'#f97316','中书省':'#3b82f6','门下省':'#8b5cf6','尚书省':'#10b981','六部':'#06b6d4','礼部':'#ec4899','户部':'#f59e0b','兵部':'#ef4444','刑部':'#6366f1','工部':'#14b8a6','吏部':'#d946ef'};
+    let totalDurText = data.totalDuration ? `<span style="margin-left:auto;font-size:10px;color:var(--muted)">总耗时 ${data.totalDuration}</span>` : '';
+    phaseBar.innerHTML = `<div style="padding:4px 0 8px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:11px;font-weight:600;color:var(--fg)">⏱ 阶段耗时</span>${totalDurText}</div>
+      ${data.phaseDurations.map(p=>{
+        const pct=Math.max(5,Math.round((p.durationSec||1)/maxDur*100));
+        const color=phaseColors[p.phase]||'#6b7280';
+        const ongoing=p.ongoing?'<span style="font-size:9px;color:#60a5fa"> ●进行中</span>':'';
+        return `<div style="display:flex;align-items:center;gap:6px;margin:2px 0;font-size:11px">
+          <span style="min-width:48px;color:var(--muted);text-align:right">${esc(p.phase)}</span>
+          <div style="flex:1;height:14px;background:var(--panel);border-radius:3px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${color};border-radius:3px;opacity:${p.ongoing?0.6:0.85}"></div>
+          </div>
+          <span style="min-width:60px;font-size:10px;color:var(--muted)">${p.durationText}${ongoing}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // ── Todos 进度条 ──
+  const todosBar=document.getElementById('la-todos-bar');
+  if(todosBar && data.todosSummary){
+    const s=data.todosSummary;
+    todosBar.innerHTML=`<div style="padding:4px 0 8px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-size:11px;font-weight:600;color:var(--fg)">📊 执行进度</span>
+        <span style="font-size:20px;font-weight:700;color:${s.percent>=100?'#22c55e':s.percent>=50?'#60a5fa':'var(--fg)'}">${s.percent}%</span>
+        <span style="font-size:10px;color:var(--muted)">✅${s.completed} 🔄${s.inProgress} ⬜${s.notStarted} / 共${s.total}项</span>
+      </div>
+      <div style="height:8px;background:var(--panel);border-radius:4px;overflow:hidden;display:flex">
+        <div style="width:${s.total?s.completed/s.total*100:0}%;background:#22c55e;transition:width .3s"></div>
+        <div style="width:${s.total?s.inProgress/s.total*100:0}%;background:#3b82f6;transition:width .3s"></div>
+      </div>
+    </div>`;
+  }
+
+  // ── 资源消耗汇总 ──
+  const resBar=document.getElementById('la-resource-bar');
+  if(resBar && data.resourceSummary){
+    const r=data.resourceSummary;
+    const parts=[];
+    if(r.totalTokens) parts.push(`🔢 ${r.totalTokens.toLocaleString()} tokens`);
+    if(r.totalCost) parts.push(`💰 $${r.totalCost.toFixed(4)}`);
+    if(r.totalElapsedSec){
+      const m=Math.floor(r.totalElapsedSec/60), s=r.totalElapsedSec%60;
+      parts.push(`⏳ ${m>0?m+'分':''}${s}秒`);
+    }
+    if(parts.length){
+      resBar.innerHTML=`<div style="padding:4px 0 8px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center">
+        <span style="font-size:11px;font-weight:600;color:var(--fg)">📈 资源消耗</span>
+        ${parts.map(p=>`<span style="font-size:11px;color:var(--muted)">${p}</span>`).join('')}
+      </div>`;
+    }
+  }
+
   // 判断是否活跃（最后一条活动5分钟内）
   const lastEntry=data.activity[data.activity.length-1];
   let isActive=false;
@@ -1234,12 +1299,21 @@ function renderLiveActivity(data){
     }
     if(a.kind==='todos'){
       const agBadge=a.agent?`<span style="font-size:9px;color:var(--muted);background:var(--panel);padding:1px 4px;border-radius:3px;margin-right:4px">${_agentLabels[a.agent]||a.agent}</span>`:'';
+      // diff 高亮
+      const diffMap=new Map();
+      if(a.diff){
+        (a.diff.changed||[]).forEach(c=>diffMap.set(c.id,{type:'changed',from:c.from,to:c.to}));
+        (a.diff.added||[]).forEach(c=>diffMap.set(c.id,{type:'added'}));
+      }
       const items=(a.items||[]).map(td=>{
         const icon=td.status==='completed'?'✅':td.status==='in-progress'?'🔄':'⬜';
         const cls=td.status==='completed'?'style="opacity:0.5;text-decoration:line-through"':td.status==='in-progress'?'style="color:#60a5fa;font-weight:bold"':'';
-        return `<div ${cls}>${icon} ${esc(td.title)}</div>`;
+        const d=diffMap.get(String(td.id));
+        const diffTag=d?(d.type==='changed'&&d.to==='completed'?'<span style="color:#22c55e;font-size:9px;margin-left:4px">✨刚完成</span>':d.type==='changed'?`<span style="color:#f59e0b;font-size:9px;margin-left:4px">↻${d.from}→${d.to}</span>`:d.type==='added'?'<span style="color:#3b82f6;font-size:9px;margin-left:4px">🆕新增</span>':''):'';
+        return `<div ${cls}>${icon} ${esc(td.title)}${diffTag}</div>`;
       }).join('');
-      return `<div class="la-entry" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="font-size:11px;color:var(--muted);margin-bottom:2px">${agBadge}📝 执行计划</div>${items}</div>`;
+      const removedHtml=(a.diff&&a.diff.removed&&a.diff.removed.length)?a.diff.removed.map(r=>`<div style="opacity:0.4;text-decoration:line-through">🗑 ${esc(r.title)}</div>`).join(''):'';
+      return `<div class="la-entry" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="font-size:11px;color:var(--muted);margin-bottom:2px">${agBadge}📝 执行计划</div>${items}${removedHtml}</div>`;
     }
     // legacy kinds (assistant/tool_result/user) - backward compatibility
     const agBadge=a.agent?`<span style="font-size:9px;color:var(--muted);background:var(--panel);padding:1px 4px;border-radius:3px;margin-right:4px">${_agentLabels[a.agent]||a.agent}</span>`:'';

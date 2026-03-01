@@ -281,7 +281,7 @@ def cmd_block(task_id, reason):
     log.warning(f'⚠️ {task_id} 已阻塞: {reason}')
 
 
-def cmd_progress(task_id, now_text, todos_pipe=''):
+def cmd_progress(task_id, now_text, todos_pipe='', tokens=0, cost=0.0, elapsed=0):
     """🔥 实时进展汇报 — Agent 主动调用，不改变状态，只更新 now + todos
 
     now_text: 当前正在做什么的一句话描述（必填）
@@ -290,6 +290,9 @@ def cmd_progress(task_id, now_text, todos_pipe=''):
         - 以 ✅ 结尾 → completed
         - 以 🔄 结尾 → in-progress
         - 其他 → not-started
+    tokens: 可选，本次消耗的 token 数
+    cost: 可选，本次成本（美元）
+    elapsed: 可选，本次耗时（秒）
     """
     clean = _sanitize_remark(now_text)
     # 解析 todos_pipe
@@ -313,6 +316,20 @@ def cmd_progress(task_id, now_text, todos_pipe=''):
         if new_todos:
             parsed_todos = new_todos
 
+    # 解析资源消耗参数
+    try:
+        tokens = int(tokens) if tokens else 0
+    except (ValueError, TypeError):
+        tokens = 0
+    try:
+        cost = float(cost) if cost else 0.0
+    except (ValueError, TypeError):
+        cost = 0.0
+    try:
+        elapsed = int(elapsed) if elapsed else 0
+    except (ValueError, TypeError):
+        elapsed = 0
+
     done_cnt = [0]
     total_cnt = [0]
     def modifier(tasks):
@@ -328,11 +345,19 @@ def cmd_progress(task_id, now_text, todos_pipe=''):
         agent_id = _infer_agent_id_from_runtime(t)
         agent_label = _AGENT_LABELS.get(agent_id, agent_id)
         log_todos = parsed_todos if parsed_todos is not None else t.get('todos', [])
-        t.setdefault('progress_log', []).append({
+        log_entry = {
             'at': at, 'agent': agent_id, 'agentLabel': agent_label,
             'text': clean, 'todos': log_todos,
             'state': t.get('state', ''), 'org': t.get('org', ''),
-        })
+        }
+        # 资源消耗（可选字段，有值才写入）
+        if tokens > 0:
+            log_entry['tokens'] = tokens
+        if cost > 0:
+            log_entry['cost'] = cost
+        if elapsed > 0:
+            log_entry['elapsed'] = elapsed
+        t.setdefault('progress_log', []).append(log_entry)
         # 限制 progress_log 大小，防止无限增长
         if len(t['progress_log']) > MAX_PROGRESS_LOG:
             t['progress_log'] = t['progress_log'][-MAX_PROGRESS_LOG:]
@@ -342,7 +367,10 @@ def cmd_progress(task_id, now_text, todos_pipe=''):
         return tasks
     atomic_json_update(TASKS_FILE, modifier, [])
     save(load())  # trigger refresh
-    log.info(f'📡 {task_id} 进展: {clean[:40]}... [{done_cnt[0]}/{total_cnt[0]}]')
+    res_info = ''
+    if tokens or cost or elapsed:
+        res_info = f' [res: {tokens}tok/${cost:.4f}/{elapsed}s]'
+    log.info(f'📡 {task_id} 进展: {clean[:40]}... [{done_cnt[0]}/{total_cnt[0]}]{res_info}')
 
 def cmd_todo(task_id, todo_id, title, status='not-started'):
     """添加或更新子任务 todo（原子操作）
@@ -402,7 +430,27 @@ if __name__ == '__main__':
     elif cmd == 'todo':
         cmd_todo(args[1], args[2], args[3] if len(args) > 3 else '', args[4] if len(args) > 4 else 'not-started')
     elif cmd == 'progress':
-        cmd_progress(args[1], args[2], args[3] if len(args) > 3 else '')
+        # 解析可选 --tokens/--cost/--elapsed 参数
+        pos_args = []
+        kw = {}
+        i = 1
+        while i < len(args):
+            if args[i] == '--tokens' and i + 1 < len(args):
+                kw['tokens'] = args[i + 1]; i += 2
+            elif args[i] == '--cost' and i + 1 < len(args):
+                kw['cost'] = args[i + 1]; i += 2
+            elif args[i] == '--elapsed' and i + 1 < len(args):
+                kw['elapsed'] = args[i + 1]; i += 2
+            else:
+                pos_args.append(args[i]); i += 1
+        cmd_progress(
+            pos_args[0] if len(pos_args) > 0 else '',
+            pos_args[1] if len(pos_args) > 1 else '',
+            pos_args[2] if len(pos_args) > 2 else '',
+            tokens=kw.get('tokens', 0),
+            cost=kw.get('cost', 0.0),
+            elapsed=kw.get('elapsed', 0),
+        )
     else:
         print(__doc__)
         sys.exit(1)

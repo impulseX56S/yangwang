@@ -761,10 +761,106 @@ def get_agent_latest_segment(agent_id, limit=20):
     return entries[-limit:]
 
 
+def _compute_phase_durations(flow_log):
+    """从 flow_log 计算每个阶段的停留时长。"""
+    if not flow_log or len(flow_log) < 1:
+        return []
+    phases = []
+    for i, fl in enumerate(flow_log):
+        start_at = fl.get('at', '')
+        to_dept = fl.get('to', '')
+        remark = fl.get('remark', '')
+        # 下一阶段的起始时间就是本阶段的结束时间
+        if i + 1 < len(flow_log):
+            end_at = flow_log[i + 1].get('at', '')
+            ongoing = False
+        else:
+            end_at = now_iso()
+            ongoing = True
+        # 计算时长
+        dur_sec = 0
+        try:
+            from_dt = datetime.datetime.fromisoformat(start_at.replace('Z', '+00:00'))
+            to_dt = datetime.datetime.fromisoformat(end_at.replace('Z', '+00:00'))
+            dur_sec = max(0, int((to_dt - from_dt).total_seconds()))
+        except Exception:
+            pass
+        # 人类可读时长
+        if dur_sec < 60:
+            dur_text = f'{dur_sec}秒'
+        elif dur_sec < 3600:
+            dur_text = f'{dur_sec // 60}分{dur_sec % 60}秒'
+        elif dur_sec < 86400:
+            h, rem = divmod(dur_sec, 3600)
+            dur_text = f'{h}小时{rem // 60}分'
+        else:
+            d, rem = divmod(dur_sec, 86400)
+            dur_text = f'{d}天{rem // 3600}小时'
+        phases.append({
+            'phase': to_dept,
+            'from': start_at,
+            'to': end_at,
+            'durationSec': dur_sec,
+            'durationText': dur_text,
+            'ongoing': ongoing,
+            'remark': remark,
+        })
+    return phases
+
+
+def _compute_todos_summary(todos):
+    """计算 todos 完成率汇总。"""
+    if not todos:
+        return None
+    total = len(todos)
+    completed = sum(1 for t in todos if t.get('status') == 'completed')
+    in_progress = sum(1 for t in todos if t.get('status') == 'in-progress')
+    not_started = total - completed - in_progress
+    percent = round(completed / total * 100) if total else 0
+    return {
+        'total': total,
+        'completed': completed,
+        'inProgress': in_progress,
+        'notStarted': not_started,
+        'percent': percent,
+    }
+
+
+def _compute_todos_diff(prev_todos, curr_todos):
+    """计算两个 todos 快照之间的差异。"""
+    prev_map = {str(t.get('id', '')): t for t in (prev_todos or [])}
+    curr_map = {str(t.get('id', '')): t for t in (curr_todos or [])}
+    changed, added, removed = [], [], []
+    for tid, ct in curr_map.items():
+        if tid in prev_map:
+            pt = prev_map[tid]
+            if pt.get('status') != ct.get('status'):
+                changed.append({
+                    'id': tid, 'title': ct.get('title', ''),
+                    'from': pt.get('status', ''), 'to': ct.get('status', ''),
+                })
+        else:
+            added.append({'id': tid, 'title': ct.get('title', '')})
+    for tid, pt in prev_map.items():
+        if tid not in curr_map:
+            removed.append({'id': tid, 'title': pt.get('title', '')})
+    if not changed and not added and not removed:
+        return None
+    return {'changed': changed, 'added': added, 'removed': removed}
+
+
 def get_task_activity(task_id):
     """获取任务的实时进展数据。
     数据来源：任务自身的 now / todos / flow_log 字段（由 Agent 通过 progress 命令主动上报），
     不再从 Agent session JSONL 中抓取对话日志。
+
+    增强字段:
+    - taskMeta: 任务元信息 (title/state/org/output/block/priority/reviewRound/archived)
+    - phaseDurations: 各阶段停留时长
+    - todosSummary: todos 完成率汇总
+    - resourceSummary: Agent 资源消耗汇总 (tokens/cost/elapsed)
+    - activity 条目中 progress/todos 保留 state/org 快照
+    - activity 中 todos 条目含 diff 字段
     """
     tasks = load_tasks()
     task = next((t for t in tasks if t.get('id') == task_id), None)
@@ -777,16 +873,29 @@ def get_task_activity(task_id):
     todos = task.get('todos', [])
     updated_at = task.get('updatedAt', '')
 
+    # ── 任务元信息 ──
+    task_meta = {
+        'title': task.get('title', ''),
+        'state': state,
+        'org': org,
+        'output': task.get('output', ''),
+        'block': task.get('block', ''),
+        'priority': task.get('priority', 'normal'),
+        'reviewRound': task.get('review_round', 0),
+        'archived': task.get('archived', False),
+    }
+
     # 当前负责 Agent（兼容旧逻辑）
     agent_id = _STATE_AGENT_MAP.get(state)
     if agent_id is None and state in ('Doing', 'Next'):
         agent_id = _ORG_AGENT_MAP.get(org)
 
-    # 构建活动条目列表（flow_log + progress_log）
+    # ── 构建活动条目列表（flow_log + progress_log）──
     activity = []
+    flow_log = task.get('flow_log', [])
 
     # 1. flow_log 转为活动条目
-    for fl in task.get('flow_log', []):
+    for fl in flow_log:
         activity.append({
             'at': fl.get('at', ''),
             'kind': 'flow',
@@ -798,6 +907,15 @@ def get_task_activity(task_id):
     progress_log = task.get('progress_log', [])
     related_agents = set()
 
+    # 资源消耗累加
+    total_tokens = 0
+    total_cost = 0.0
+    total_elapsed = 0
+    has_resource_data = False
+
+    # 用于 todos diff 计算
+    prev_todos_snapshot = None
+
     if progress_log:
         # 2. 多 Agent 实时进展日志（每条 progress 都保留自己的 todo 快照）
         for pl in progress_log:
@@ -805,24 +923,54 @@ def get_task_activity(task_id):
             p_agent = pl.get('agent', '')
             p_text = pl.get('text', '')
             p_todos = pl.get('todos', [])
+            p_state = pl.get('state', '')
+            p_org = pl.get('org', '')
             if p_agent:
                 related_agents.add(p_agent)
+            # 累加资源消耗
+            if pl.get('tokens'):
+                total_tokens += pl['tokens']
+                has_resource_data = True
+            if pl.get('cost'):
+                total_cost += pl['cost']
+                has_resource_data = True
+            if pl.get('elapsed'):
+                total_elapsed += pl['elapsed']
+                has_resource_data = True
             if p_text:
-                activity.append({
+                entry = {
                     'at': p_at,
                     'kind': 'progress',
                     'text': p_text,
                     'agent': p_agent,
                     'agentLabel': pl.get('agentLabel', ''),
-                })
+                    'state': p_state,
+                    'org': p_org,
+                }
+                # 单条资源数据
+                if pl.get('tokens'):
+                    entry['tokens'] = pl['tokens']
+                if pl.get('cost'):
+                    entry['cost'] = pl['cost']
+                if pl.get('elapsed'):
+                    entry['elapsed'] = pl['elapsed']
+                activity.append(entry)
             if p_todos:
-                activity.append({
+                todos_entry = {
                     'at': p_at,
                     'kind': 'todos',
                     'items': p_todos,
                     'agent': p_agent,
                     'agentLabel': pl.get('agentLabel', ''),
-                })
+                    'state': p_state,
+                    'org': p_org,
+                }
+                # 计算 diff
+                diff = _compute_todos_diff(prev_todos_snapshot, p_todos)
+                if diff:
+                    todos_entry['diff'] = diff
+                activity.append(todos_entry)
+                prev_todos_snapshot = p_todos
 
         # 仅当无法通过状态确定 Agent 时，才回退到最后一次上报的 Agent
         if not agent_id:
@@ -837,6 +985,8 @@ def get_task_activity(task_id):
                 'kind': 'progress',
                 'text': now_text,
                 'agent': agent_id or '',
+                'state': state,
+                'org': org,
             })
         if todos:
             activity.append({
@@ -844,6 +994,8 @@ def get_task_activity(task_id):
                 'kind': 'todos',
                 'items': todos,
                 'agent': agent_id or '',
+                'state': state,
+                'org': org,
             })
 
     # 按时间排序，保证流转/进展穿插正确
@@ -852,16 +1004,57 @@ def get_task_activity(task_id):
     if agent_id:
         related_agents.add(agent_id)
 
-    return {
+    # ── 阶段耗时统计 ──
+    phase_durations = _compute_phase_durations(flow_log)
+
+    # ── Todos 汇总 ──
+    todos_summary = _compute_todos_summary(todos)
+
+    # ── 总耗时（首条 flow_log 到最后一条/当前） ──
+    total_duration = None
+    if flow_log:
+        try:
+            first_at = datetime.datetime.fromisoformat(flow_log[0].get('at', '').replace('Z', '+00:00'))
+            if state in ('Done', 'Cancelled') and len(flow_log) >= 2:
+                last_at = datetime.datetime.fromisoformat(flow_log[-1].get('at', '').replace('Z', '+00:00'))
+            else:
+                last_at = datetime.datetime.now(datetime.timezone.utc)
+            dur = max(0, int((last_at - first_at).total_seconds()))
+            if dur < 60:
+                total_duration = f'{dur}秒'
+            elif dur < 3600:
+                total_duration = f'{dur // 60}分{dur % 60}秒'
+            elif dur < 86400:
+                h, rem = divmod(dur, 3600)
+                total_duration = f'{h}小时{rem // 60}分'
+            else:
+                d, rem = divmod(dur, 86400)
+                total_duration = f'{d}天{rem // 3600}小时'
+        except Exception:
+            pass
+
+    result = {
         'ok': True,
         'taskId': task_id,
+        'taskMeta': task_meta,
         'agentId': agent_id,
         'agentLabel': _STATE_LABELS.get(state, state),
         'lastActive': updated_at[:19].replace('T', ' ') if updated_at else None,
         'activity': activity,
         'activitySource': 'progress',
         'relatedAgents': sorted(list(related_agents)),
+        'phaseDurations': phase_durations,
+        'totalDuration': total_duration,
     }
+    if todos_summary:
+        result['todosSummary'] = todos_summary
+    if has_resource_data:
+        result['resourceSummary'] = {
+            'totalTokens': total_tokens,
+            'totalCost': round(total_cost, 4),
+            'totalElapsedSec': total_elapsed,
+        }
+    return result
 
 
 # 状态推进顺序（手动推进用）
