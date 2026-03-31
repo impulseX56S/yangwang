@@ -11,15 +11,17 @@ router = APIRouter()
 
 # Agent 元信息（对应 agents/ 目录下的 SOUL.md）
 AGENT_META = {
-    "zaochao": {"name": "早朝（朝会主持）", "role": "朝会召集与议程管理", "icon": "🏛️"},
-    "shangshu": {"name": "尚书令", "role": "总协调与任务监督", "icon": "📜"},
-    "zhongshu": {"name": "中书省", "role": "起草诏令与方案规划", "icon": "✍️"},
-    "menxia": {"name": "门下省", "role": "审核与封驳", "icon": "🔍"},
-    "libu": {"name": "吏部", "role": "人事与组织管理", "icon": "👤"},
-    "hubu": {"name": "户部", "role": "财务与资源管理", "icon": "💰"},
-    "gongbu": {"name": "工部", "role": "工程与技术实施", "icon": "🔧"},
-    "xingbu": {"name": "刑部", "role": "规范与质量审查", "icon": "⚖️"},
-    "bingbu": {"name": "兵部", "role": "安全与应急响应", "icon": "🛡️"},
+    "stella": {"name": "星愿团长（Stella）", "role": "冒险团团长", "icon": "🌟"},
+    "lyra": {"name": "莉雅（Lyra）", "role": "吟游诗人", "icon": "🎵"},
+    "aria": {"name": "艾瑞娅（Aria）", "role": "元素法师", "icon": "🔮"},
+    "sylvia": {"name": "希尔维亚（Sylvia）", "role": "森林游侠", "icon": "🌿"},
+    "nina": {"name": "妮娜（Nina）", "role": "炼金术士", "icon": "⚗️"},
+    "luna": {"name": "露娜（Luna）", "role": "月之祭司", "icon": "💫"},
+    "kiana": {"name": "琪亚娜（Kiana）", "role": "女武神", "icon": "⚔️"},
+    "mio": {"name": "美绪（Mio）", "role": "侦察兵", "icon": "🔍"},
+    "hana": {"name": "花（Hana）", "role": "治疗师", "icon": "🌸"},
+    "yui": {"name": "结衣（Yui）", "role": "机械师", "icon": "🤖"},
+    "neko": {"name": "奈子（Neko）", "role": "猫耳斥候", "icon": "🐱"},
 }
 
 

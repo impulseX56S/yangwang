@@ -75,11 +75,11 @@
   ],
   "agents": [
     {
-      "id": "shangshu",
-      "label": "尚书省",
-      "role": "尚书令",
-      "duty": "派单与升级裁决",
-      "emoji": "📮",
+      "id": "aria",
+      "label": "艾莉亚",
+      "role": "冒险团副团长",
+      "duty": "总协调与任务监督",
+      "emoji": "🌟",
       "model": "anthropic/claude-sonnet-4-6",
       "defaultModel": "anthropic/claude-sonnet-4-6",
       "isDefaultModel": true,
@@ -105,21 +105,21 @@
         }
       ],
       "allowAgents": [
-        "zhongshu",
-        "menxia",
-        "hubu",
-        "libu",
-        "bingbu",
-        "xingbu",
-        "gongbu"
+        "fiona",
+        "sakura",
+        "luna",
+        "lena",
+        "seria",
+        "elsa",
+        "melissa"
       ]
     },
     {
-      "id": "zhongshu",
-      "label": "中书省",
-      "role": "中书令",
-      "duty": "起草任务令与优先级",
-      "emoji": "📜",
+      "id": "fiona",
+      "label": "菲奥娜",
+      "role": "策略师",
+      "duty": "方案规划与策略制定",
+      "emoji": "📝",
       "model": "anthropic/claude-sonnet-4-6",
       "defaultModel": "anthropic/claude-sonnet-4-6",
       "isDefaultModel": true,
@@ -133,16 +133,16 @@
         }
       ],
       "allowAgents": [
-        "menxia",
-        "shangshu"
+        "sakura",
+        "aria"
       ]
     },
     {
-      "id": "menxia",
-      "label": "门下省",
-      "role": "侍中",
-      "duty": "审议与退回机制",
-      "emoji": "🔍",
+      "id": "sakura",
+      "label": "樱雪",
+      "role": "侦察员",
+      "duty": "审核与风险评估",
+      "emoji": "🐱",
       "model": "anthropic/claude-sonnet-4-6",
       "defaultModel": "anthropic/claude-sonnet-4-6",
       "isDefaultModel": true,
@@ -156,16 +156,16 @@
         }
       ],
       "allowAgents": [
-        "shangshu",
-        "zhongshu"
+        "aria",
+        "fiona"
       ]
     },
     {
-      "id": "hubu",
-      "label": "户部",
-      "role": "户部尚书",
-      "duty": "资源/预算/成本",
-      "emoji": "💰",
+      "id": "luna",
+      "label": "露娜",
+      "role": "财务师",
+      "duty": "财务与资源管理",
+      "emoji": "💎",
       "model": "anthropic/claude-sonnet-4-6",
       "defaultModel": "anthropic/claude-sonnet-4-6",
       "isDefaultModel": true,
@@ -179,15 +179,15 @@
         }
       ],
       "allowAgents": [
-        "shangshu"
+        "aria"
       ]
     },
     {
-      "id": "libu",
-      "label": "礼部",
-      "role": "礼部尚书",
-      "duty": "文档/汇报/规范",
-      "emoji": "📝",
+      "id": "lena",
+      "label": "莉娜",
+      "role": "团队管理师",
+      "duty": "人事与组织管理",
+      "emoji": "👥",
       "model": "anthropic/claude-sonnet-4-6",
       "defaultModel": "anthropic/claude-sonnet-4-6",
       "isDefaultModel": true,
@@ -201,15 +201,15 @@
         }
       ],
       "allowAgents": [
-        "shangshu"
+        "aria"
       ]
     },
     {
-      "id": "bingbu",
-      "label": "兵部",
-      "role": "兵部尚书",
-      "duty": "应急与巡检",
-      "emoji": "⚔️",
+      "id": "seria",
+      "label": "瑟莉亚",
+      "role": "守护者",
+      "duty": "安全与应急响应",
+      "emoji": "🛡️",
       "model": "anthropic/claude-sonnet-4-6",
       "defaultModel": "anthropic/claude-sonnet-4-6",
       "isDefaultModel": true,
@@ -223,14 +223,14 @@
         }
       ],
       "allowAgents": [
-        "shangshu"
+        "aria"
       ]
     },
     {
-      "id": "xingbu",
-      "label": "刑部",
-      "role": "刑部尚书",
-      "duty": "合规/审计/红线",
+      "id": "elsa",
+      "label": "艾尔莎",
+      "role": "守护者",
+      "duty": "规范与质量审查",
       "emoji": "⚖️",
       "model": "anthropic/claude-sonnet-4-6",
       "defaultModel": "anthropic/claude-sonnet-4-6",
@@ -245,15 +245,15 @@
         }
       ],
       "allowAgents": [
-        "shangshu"
+        "aria"
       ]
     },
     {
-      "id": "gongbu",
-      "label": "工部",
-      "role": "工部尚书",
-      "duty": "工程交付与自动化",
-      "emoji": "🔧",
+      "id": "melissa",
+      "label": "梅丽莎",
+      "role": "工匠师",
+      "duty": "工程与技术实施",
+      "emoji": "⚙️",
       "model": "anthropic/claude-sonnet-4-6",
       "defaultModel": "anthropic/claude-sonnet-4-6",
       "isDefaultModel": true,
@@ -267,8 +267,34 @@
         }
       ],
       "allowAgents": [
-        "shangshu"
+        "aria"
       ]
+    },
+    {
+      "id": "mia",
+      "label": "米娅",
+      "role": "辅助师",
+      "duty": "特殊任务处理",
+      "emoji": "👼",
+      "model": "anthropic/claude-sonnet-4-6",
+      "defaultModel": "anthropic/claude-sonnet-4-6",
+      "isDefaultModel": true,
+      "workspace": "/Users/bingsen/.openclaw/workspace-taizi",
+      "skills": [],
+      "allowAgents": ["fiona"]
+    },
+    {
+      "id": "nicole",
+      "label": "妮可",
+      "role": "招募师",
+      "duty": "人事招聘与培训",
+      "emoji": "🦊",
+      "model": "anthropic/claude-sonnet-4-6",
+      "defaultModel": "anthropic/claude-sonnet-4-6",
+      "isDefaultModel": true,
+      "workspace": "/Users/bingsen/.openclaw/workspace-libu_hr",
+      "skills": [],
+      "allowAgents": ["aria"]
     }
   ]
 }

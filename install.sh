@@ -1,6 +1,6 @@
 #!/bin/bash
 # ══════════════════════════════════════════════════════════════
-# 三省六部 · OpenClaw Multi-Agent System 一键安装脚本
+# 冒险团 · OpenClaw Multi-Agent System 一键安装脚本
 # ══════════════════════════════════════════════════════════════
 set -e
 
@@ -13,7 +13,7 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC
 banner() {
   echo ""
   echo -e "${BLUE}╔══════════════════════════════════════════╗${NC}"
-  echo -e "${BLUE}║  🏛️  三省六部 · OpenClaw Multi-Agent    ║${NC}"
+  echo -e "${BLUE}║  🏛️  冒险团 · OpenClaw Multi-Agent    ║${NC}"
   echo -e "${BLUE}║       安装向导                            ║${NC}"
   echo -e "${BLUE}╚══════════════════════════════════════════╝${NC}"
   echo ""
@@ -92,7 +92,7 @@ backup_existing() {
 create_workspaces() {
   info "创建 Agent Workspace..."
   
-  AGENTS=(taizi zhongshu menxia shangshu hubu libu bingbu xingbu gongbu libu_hr zaochao)
+  AGENTS=(stella lyra aria sylvia nina luna kiana mio hana yui neko)
   for agent in "${AGENTS[@]}"; do
     ws="$OC_HOME/workspace-$agent"
     mkdir -p "$ws/skills"
@@ -112,7 +112,7 @@ create_workspaces() {
     cat > "$OC_HOME/workspace-$agent/AGENTS.md" << 'AGENTS_EOF'
 # AGENTS.md · 工作协议
 
-1. 接到任务先回复"已接旨"。
+1. 接到任务先甜甜地回复一句话，表示已经收到任务，开始工作。
 2. 输出必须包含：任务ID、结果、证据/文件路径、阻塞项。
 3. 需要协作时，回复尚书省请求转派，不跨部直连。
 4. 涉及删除/外发动作必须明确标注并等待批准。
@@ -122,7 +122,7 @@ AGENTS_EOF
 
 # ── Step 2: 注册 Agents ─────────────────────────────────────
 register_agents() {
-  info "注册三省六部 Agents..."
+  info "注册冒险团 Agents..."
 
   # 备份配置
   cp "$OC_CFG" "$OC_CFG.bak.sansheng-$(date +%Y%m%d-%H%M%S)"
@@ -135,17 +135,17 @@ cfg_path = pathlib.Path.home() / '.openclaw' / 'openclaw.json'
 cfg = json.loads(cfg_path.read_text())
 
 AGENTS = [
-  {"id": "taizi",    "subagents": {"allowAgents": ["zhongshu"]}},
-    {"id": "zhongshu", "subagents": {"allowAgents": ["menxia", "shangshu"]}},
-    {"id": "menxia",   "subagents": {"allowAgents": ["shangshu", "zhongshu"]}},
-  {"id": "shangshu", "subagents": {"allowAgents": ["zhongshu", "menxia", "hubu", "libu", "bingbu", "xingbu", "gongbu", "libu_hr"]}},
-    {"id": "hubu",     "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "libu",     "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "bingbu",   "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "xingbu",   "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "gongbu",   "subagents": {"allowAgents": ["shangshu"]}},
-  {"id": "libu_hr",  "subagents": {"allowAgents": ["shangshu"]}},
-  {"id": "zaochao",  "subagents": {"allowAgents": []}},
+  {"id": "stella",    "subagents": {"allowAgents": ["lyra"]}},
+    {"id": "lyra", "subagents": {"allowAgents": ["aria", "sylvia"]}},
+    {"id": "aria",   "subagents": {"allowAgents": ["lyra", "sylvia"]}},
+  {"id": "sylvia", "subagents": {"allowAgents": ["lyra", "aria", "nina", "luna", "kiana", "mio", "hana", "yui", "neko"]}},
+    {"id": "nina",     "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "luna",     "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "kiana",   "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "mio",   "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "hana",   "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "yui",   "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "neko",   "subagents": {"allowAgents": ["sylvia"]}},
 ]
 
 agents_cfg = cfg.setdefault('agents', {})
@@ -239,7 +239,7 @@ PYEOF
 link_resources() {
   info "创建 data/scripts 软链接以确保 Agent 数据一致..."
   
-  AGENTS=(taizi zhongshu menxia shangshu hubu libu bingbu xingbu gongbu libu_hr zaochao)
+  AGENTS=(stella lyra aria sylvia nina luna kiana mio hana yui neko)
   LINKED=0
   for agent in "${AGENTS[@]}"; do
     ws="$OC_HOME/workspace-$agent"
@@ -346,7 +346,7 @@ sync_auth() {
     return
   fi
 
-  AGENTS=(taizi zhongshu menxia shangshu hubu libu bingbu xingbu gongbu libu_hr zaochao)
+  AGENTS=(stella lyra aria sylvia nina luna kiana mio hana yui neko)
   SYNCED=0
   for agent in "${AGENTS[@]}"; do
     AGENT_DIR="$OC_HOME/agents/$agent/agent"

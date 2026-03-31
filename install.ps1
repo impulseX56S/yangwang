@@ -1,4 +1,4 @@
-﻿# ══════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════
 # 三省六部 · OpenClaw Multi-Agent System 一键安装脚本 (Windows)
 # PowerShell 版本 — 对应 install.sh
 # ══════════════════════════════════════════════════════════════
@@ -12,7 +12,7 @@ $OC_CFG = Join-Path $OC_HOME "openclaw.json"
 function Write-Banner {
     Write-Host ""
     Write-Host "╔══════════════════════════════════════════╗" -ForegroundColor Blue
-    Write-Host "║  🏛️  三省六部 · OpenClaw Multi-Agent     ║" -ForegroundColor Blue
+    Write-Host "║  🏛️  冒险团 · OpenClaw Multi-Agent     ║" -ForegroundColor Blue
     Write-Host "║       安装向导 (Windows)                  ║" -ForegroundColor Blue
     Write-Host "╚══════════════════════════════════════════╝" -ForegroundColor Blue
     Write-Host ""
@@ -76,7 +76,7 @@ function Backup-Existing {
 function Create-Workspaces {
     Info "创建 Agent Workspace..."
 
-    $agents = @("taizi","zhongshu","menxia","shangshu","hubu","libu","bingbu","xingbu","gongbu","libu_hr","zaochao")
+    $agents = @("stella","lyra","aria","sylvia","nina","luna","kiana","mio","hana","yui","neko")
     foreach ($agent in $agents) {
         $ws = Join-Path $OC_HOME "workspace-$agent"
         New-Item -ItemType Directory -Path (Join-Path $ws "skills") -Force | Out-Null
@@ -98,7 +98,7 @@ function Create-Workspaces {
         $agentsMd = @"
 # AGENTS.md · 工作协议
 
-1. 接到任务先回复"已接旨"。
+1. 接到任务先回复一句话，表示已经收到，开始工作。
 2. 输出必须包含：任务ID、结果、证据/文件路径、阻塞项。
 3. 需要协作时，回复尚书省请求转派，不跨部直连。
 4. 涉及删除/外发动作必须明确标注并等待批准。
@@ -109,7 +109,7 @@ function Create-Workspaces {
 
 # ── Step 2: 注册 Agents ──
 function Register-Agents {
-    Info "注册三省六部 Agents..."
+    Info "注册冒险团 Agents..."
 
     $ts = Get-Date -Format "yyyyMMdd-HHmmss"
     Copy-Item $OC_CFG "$OC_CFG.bak.sansheng-$ts"
@@ -122,17 +122,17 @@ cfg_path = pathlib.Path(os.environ['USERPROFILE']) / '.openclaw' / 'openclaw.jso
 cfg = json.loads(cfg_path.read_text(encoding='utf-8'))
 
 AGENTS = [
-    {"id": "taizi",    "subagents": {"allowAgents": ["zhongshu"]}},
-    {"id": "zhongshu", "subagents": {"allowAgents": ["menxia", "shangshu"]}},
-    {"id": "menxia",   "subagents": {"allowAgents": ["shangshu", "zhongshu"]}},
-    {"id": "shangshu", "subagents": {"allowAgents": ["zhongshu", "menxia", "hubu", "libu", "bingbu", "xingbu", "gongbu", "libu_hr"]}},
-    {"id": "hubu",     "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "libu",     "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "bingbu",   "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "xingbu",   "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "gongbu",   "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "libu_hr",  "subagents": {"allowAgents": ["shangshu"]}},
-    {"id": "zaochao",  "subagents": {"allowAgents": []}},
+    {"id": "stella",    "subagents": {"allowAgents": ["lyra"]}},
+    {"id": "lyra", "subagents": {"allowAgents": ["aria", "sylvia"]}},
+    {"id": "aria",   "subagents": {"allowAgents": ["lyra", "sylvia"]}},
+    {"id": "sylvia", "subagents": {"allowAgents": ["lyra", "aria", "nina", "luna", "kiana", "mio", "hana", "yui", "neko"]}},
+    {"id": "nina",     "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "luna",     "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "kiana",   "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "mio",   "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "hana",   "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "yui",   "subagents": {"allowAgents": ["sylvia"]}},
+    {"id": "neko",   "subagents": {"allowAgents": ["sylvia"]}},
 ]
 
 agents_cfg = cfg.setdefault('agents', {})
@@ -186,7 +186,7 @@ function Init-Data {
 function Link-Resources {
     Info "创建 data/scripts 目录连接..."
     $linked = 0
-    $agents = @("taizi","zhongshu","menxia","shangshu","hubu","libu","bingbu","xingbu","gongbu","libu_hr","zaochao")
+    $agents = @("stella","lyra","aria","sylvia","nina","luna","kiana","mio","hana","yui","neko")
     foreach ($agent in $agents) {
         $ws = Join-Path $OC_HOME "workspace-$agent"
         New-Item -ItemType Directory -Path $ws -Force | Out-Null
@@ -293,12 +293,12 @@ Restart-Gateway
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║  🎉  三省六部安装完成！                          ║" -ForegroundColor Green
+Write-Host "║  🎉  冒险团安装完成！                          ║" -ForegroundColor Green
 Write-Host "╚══════════════════════════════════════════════════╝" -ForegroundColor Green
 Write-Host ""
 Write-Host "下一步："
 Write-Host "  1. 配置 API Key（如尚未配置）:"
-Write-Host "     openclaw agents add taizi     # 按提示输入 Anthropic API Key"
+Write-Host "     openclaw agents add stella     # 按提示输入 Anthropic API Key"
 Write-Host "     .\install.ps1                 # 重新运行以同步到所有 Agent"
 Write-Host "  2. 启动数据刷新循环:  bash scripts/run_loop.sh"
 Write-Host "  3. 启动看板服务器:    python dashboard/server.py"

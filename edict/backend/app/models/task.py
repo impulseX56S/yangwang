@@ -47,28 +47,28 @@ STATE_TRANSITIONS = {
 }
 
 STATE_AGENT_MAP = {
-    TaskState.Taizi: "taizi",
-    TaskState.Zhongshu: "zhongshu",
-    TaskState.Menxia: "menxia",
-    TaskState.Assigned: "shangshu",
-    TaskState.Review: "shangshu",
+    TaskState.Taizi: "stella",
+    TaskState.Zhongshu: "lyra",
+    TaskState.Menxia: "aria",
+    TaskState.Assigned: "sylvia",
+    TaskState.Review: "sylvia",
 }
 
 ORG_AGENT_MAP = {
-    "户部": "hubu",
-    "礼部": "libu",
-    "兵部": "bingbu",
-    "刑部": "xingbu",
-    "工部": "gongbu",
-    "吏部": "libu_hr",
+    "户部": "nina",
+    "礼部": "luna",
+    "兵部": "kiana",
+    "刑部": "mio",
+    "工部": "yui",
+    "吏部": "neko",
 }
 
 STATE_ORG_MAP = {
-    TaskState.Taizi: "太子",
-    TaskState.Zhongshu: "中书省",
-    TaskState.Menxia: "门下省",
-    TaskState.Assigned: "尚书省",
-    TaskState.Review: "尚书省",
+    TaskState.Taizi: "星愿团长",
+    TaskState.Zhongshu: "莉雅",
+    TaskState.Menxia: "艾瑞娅",
+    TaskState.Assigned: "希尔维亚",
+    TaskState.Review: "希尔维亚",
 }
 
 

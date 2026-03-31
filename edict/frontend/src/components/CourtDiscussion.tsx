@@ -18,9 +18,9 @@ import { api } from '../api';
 // ── 常量 ──
 
 const OFFICIAL_COLORS: Record<string, string> = {
-  taizi: '#e8a040', zhongshu: '#a07aff', menxia: '#6a9eff', shangshu: '#2ecc8a',
-  libu: '#f5c842', hubu: '#ff9a6a', bingbu: '#ff5270', xingbu: '#cc4444',
-  gongbu: '#44aaff', libu_hr: '#9b59b6',
+  stella: '#e8a040', lyra: '#a07aff', aria: '#6a9eff', sylvia: '#2ecc8a',
+  nina: '#f5c842', luna: '#ff9a6a', kiana: '#ff5270', mio: '#cc4444',
+  hana: '#44aaff', yui: '#9b59b6', neko: '#ff6b9d',
 };
 
 const EMOTION_EMOJI: Record<string, string> = {
@@ -30,12 +30,12 @@ const EMOTION_EMOJI: Record<string, string> = {
 
 const COURT_POSITIONS: Record<string, { x: number; y: number }> = {
   // 左列
-  zhongshu: { x: 15, y: 25 }, menxia: { x: 15, y: 45 }, shangshu: { x: 15, y: 65 },
+  lyra: { x: 15, y: 25 }, aria: { x: 15, y: 45 }, sylvia: { x: 15, y: 65 },
   // 右列
-  libu: { x: 85, y: 20 }, hubu: { x: 85, y: 35 }, bingbu: { x: 85, y: 50 },
-  xingbu: { x: 85, y: 65 }, gongbu: { x: 85, y: 80 },
+  nina: { x: 85, y: 20 }, luna: { x: 85, y: 35 }, kiana: { x: 85, y: 50 },
+  mio: { x: 85, y: 65 }, hana: { x: 85, y: 80 },
   // 中间
-  taizi: { x: 50, y: 20 }, libu_hr: { x: 50, y: 80 },
+  stella: { x: 50, y: 20 }, yui: { x: 50, y: 80 }, neko: { x: 50, y: 50 },
 };
 
 interface CourtMessage {

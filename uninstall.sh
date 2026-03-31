@@ -81,9 +81,9 @@ except Exception as e:
     exit(1)
 
 AGENTS_TO_REMOVE = {
-    "taizi", "zhongshu", "menxia", "shangshu",
-    "hubu", "libu", "bingbu", "xingbu", "gongbu",
-    "libu_hr", "zaochao"
+    "stella", "lyra", "aria", "sylvia",
+    "nina", "luna", "kiana", "mio", "hana",
+    "yui", "neko"
 }
 
 agents_list = cfg.get('agents', {}).get('list', [])
@@ -103,7 +103,7 @@ PYEOF
 remove_workspaces() {
   info "清除 Agent Workspace 目录..."
 
-  AGENTS=(taizi zhongshu menxia shangshu hubu libu bingbu xingbu gongbu libu_hr zaochao)
+  AGENTS=(stella lyra aria sylvia nina luna kiana mio hana yui neko)
   removed=0
   for agent in "${AGENTS[@]}"; do
     ws="$OC_HOME/workspace-$agent"

@@ -101,18 +101,19 @@ export const TAB_DEFS: { key: TabKey; label: string; icon: string }[] = [
 // ── DEPTS for monitor ──
 
 export const DEPTS = [
-  { id: 'taizi',    label: '太子',   emoji: '🤴', role: '太子',     rank: '储君' },
-  { id: 'zhongshu', label: '中书省', emoji: '📜', role: '中书令',   rank: '正一品' },
-  { id: 'menxia',   label: '门下省', emoji: '🔍', role: '侍中',     rank: '正一品' },
-  { id: 'shangshu', label: '尚书省', emoji: '📮', role: '尚书令',   rank: '正一品' },
-  { id: 'libu',     label: '礼部',   emoji: '📝', role: '礼部尚书', rank: '正二品' },
-  { id: 'hubu',     label: '户部',   emoji: '💰', role: '户部尚书', rank: '正二品' },
-  { id: 'bingbu',   label: '兵部',   emoji: '⚔️', role: '兵部尚书', rank: '正二品' },
-  { id: 'xingbu',   label: '刑部',   emoji: '⚖️', role: '刑部尚书', rank: '正二品' },
-  { id: 'gongbu',   label: '工部',   emoji: '🔧', role: '工部尚书', rank: '正二品' },
-  { id: 'libu_hr',  label: '吏部',   emoji: '👔', role: '吏部尚书', rank: '正二品' },
-  { id: 'zaochao',  label: '钦天监', emoji: '📰', role: '朝报官',   rank: '正三品' },
+  { id: 'stella',    label: '星愿团长', emoji: '🌟', role: '团长',       rank: '星愿冒险团' },
+  { id: 'lyra',      label: '莉雅',     emoji: '🎵', role: '吟游诗人',   rank: '星愿冒险团' },
+  { id: 'aria',      label: '艾瑞娅',   emoji: '🔮', role: '元素法师',   rank: '星愿冒险团' },
+  { id: 'sylvia',    label: '希尔维亚', emoji: '🌿', role: '森林游侠',   rank: '星愿冒险团' },
+  { id: 'nina',      label: '妮娜',     emoji: '⚗️', role: '炼金术士',   rank: '星愿冒险团' },
+  { id: 'luna',      label: '露娜',     emoji: '💫', role: '月之祭司',   rank: '星愿冒险团' },
+  { id: 'kiana',     label: '琪亚娜',   emoji: '⚔️', role: '女武神',     rank: '星愿冒险团' },
+  { id: 'mio',       label: '美绪',     emoji: '🔍', role: '侦察兵',     rank: '星愿冒险团' },
+  { id: 'hana',      label: '花',       emoji: '🌸', role: '治疗师',     rank: '星愿冒险团' },
+  { id: 'yui',       label: '结衣',     emoji: '🤖', role: '机械师',     rank: '星愿冒险团' },
+  { id: 'neko',      label: '奈子',     emoji: '🐱', role: '猫耳斥候',   rank: '星愿冒险团' },
 ];
+
 
 // ── Templates ──
 
